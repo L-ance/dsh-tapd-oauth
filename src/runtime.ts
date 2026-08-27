@@ -4,8 +4,9 @@ import { credentialRef, type CredentialRef } from "@deepseek-ai/dsh-credentials"
 import * as McpClient from "@deepseek-ai/dsh-mcp-client";
 import { settingsNamespace, type SettingsScope } from "@deepseek-ai/dsh-settings";
 import { Remote, TypertRemoteService } from "@deepseek-ai/dsh-typert-protocol";
-import { normalizeBaseUrl, type Config, type TapdSettings, TapdSettingsSchema, validateSettings } from "./config.js";
+import { type Config, type TapdSettings, TapdSettingsSchema, validateSettings } from "./config.js";
 import { createMcpClientConfig } from "./mcp-config.js";
+import { saveTapdSettings } from "./save.js";
 import type { SaveInput, TapdStatus } from "./schemas.js";
 
 const SETTINGS_NAMESPACE = settingsNamespace("tapd-mcp");
@@ -125,17 +126,11 @@ export class TapdMcpRuntime extends TypertRemoteService {
 
 	@Remote
 	async save(input: SaveInput): Promise<TapdStatus> {
-		const next: TapdSettings = {
-			tapdBaseUrl: normalizeBaseUrl(input.tapdBaseUrl, "TAPD 地址"),
-			tapdApiBaseUrl: normalizeBaseUrl(input.tapdApiBaseUrl, "TAPD API 地址"),
-			mcpEnabled: input.mcpEnabled,
-		};
-		validateSettings(next);
-
-		if (input.clearTapdToken) await this.ctx.credentials.unset(this.tapdTokenRef);
-		else if (input.tapdToken.trim() !== "") await this.ctx.credentials.set(this.tapdTokenRef, input.tapdToken.trim());
-		await this.settings.update(next);
-		await this.enqueueReconcile();
-		return this.status();
+		return saveTapdSettings(input, {
+			setToken: (value) => this.ctx.credentials.set(this.tapdTokenRef, value),
+			unsetToken: () => this.ctx.credentials.unset(this.tapdTokenRef),
+			updateSettings: (next) => this.settings.update(next),
+			status: () => this.status(),
+		});
 	}
 }

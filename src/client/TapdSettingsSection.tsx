@@ -35,6 +35,10 @@ function messageOf(result: { error: { message: string } }): string {
 	return result.error.message || "Unknown error";
 }
 
+function errorMessage(error: unknown): string {
+	return error instanceof Error ? error.message : String(error);
+}
+
 export function TapdSettingsSection({ tapdMcp, t }: Props) {
 	const [status, setStatus] = useState<TapdStatus>();
 	const [draft, setDraft] = useState<Draft>();
@@ -71,16 +75,21 @@ export function TapdSettingsSection({ tapdMcp, t }: Props) {
 		setBusy(true);
 		setError("");
 		setNotice("");
-		const input: SaveInput = { ...draft };
-		const result = await tapdMcp.save(input);
-		setBusy(false);
-		if (!result.ok) {
-			setError(t("error.generic", { message: messageOf(result) }));
-			return;
+		try {
+			const input: SaveInput = { ...draft };
+			const result = await tapdMcp.save(input);
+			if (!result.ok) {
+				setError(t("error.generic", { message: messageOf(result) }));
+				return;
+			}
+			setStatus(result.value);
+			setDraft(statusToDraft(result.value));
+			setNotice(t("notice.saved"));
+		} catch (caught) {
+			setError(t("error.generic", { message: errorMessage(caught) }));
+		} finally {
+			setBusy(false);
 		}
-		setStatus(result.value);
-		setDraft(statusToDraft(result.value));
-		setNotice(t("notice.saved"));
 	}, [draft, t, tapdMcp]);
 
 	const mcpText = useMemo(() => status === undefined ? "…" : t(`mcp.${status.mcpPhase}`), [status, t]);
