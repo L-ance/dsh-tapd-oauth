@@ -34,40 +34,30 @@ DeepSeek Harness Web 的 TAPD MCP 设置插件。在 DSH 的“设置”页面�
 ## 前置条件
 
 - Node.js `^22.19.0` 或 `>=24.0.0`
+- pnpm（DSH 的 `plugin` 命令会调用 pnpm；npx 启动方式也需要）
 - `uvx` 可从启动 DSH 的 shell 中执行
 - 一个有效的 TAPD Access Token
-- 使用 DeepSeek Harness 源码方式时需要 pnpm；使用 npx 方式不需要预先安装 pnpm
 
 先确认：
 
 ```bash
 node --version
+pnpm --version
 uvx --version
 ```
 
-## 获取插件包
+## GitHub Release 安装地址
 
-插件通过 GitHub Releases 发布。可以在浏览器下载，也可以执行：
+插件通过 GitHub Releases 发布。`dsh plugin add` 支持直接安装 Release 的 `.tgz` URL，不需要提前下载或解压：
 
-```bash
-curl -fL https://github.com/L-ance/dsh-tapd-oauth/releases/download/v0.3.0/dsh-tapd-mcp-0.3.0.tgz \
-  -o ~/Downloads/dsh-tapd-mcp-0.3.0.tgz
-```
-
-安装命令使用本机 `.tgz` 的绝对路径；不要解压安装包。下载完成后可校验：
-
-```bash
-shasum -a 256 ~/Downloads/dsh-tapd-mcp-0.3.0.tgz
-```
-
-`v0.3.0` 的 SHA-256 应为 Release 页面记录的值。
+<https://github.com/L-ance/dsh-tapd-oauth/releases/download/v0.3.0/dsh-tapd-mcp-0.3.0.tgz>
 
 ## 安装方式一：DeepSeek Harness 源码
 
 适用于已经克隆 DeepSeek Harness 源码、平时使用 `pnpm dsh web` 启动的环境。在 DeepSeek Harness 源码仓库根目录执行：
 
 ```bash
-pnpm dsh plugin --profile web add ~/Downloads/dsh-tapd-mcp-0.3.0.tgz
+pnpm dsh plugin --profile web add https://github.com/L-ance/dsh-tapd-oauth/releases/download/v0.3.0/dsh-tapd-mcp-0.3.0.tgz
 pnpm dsh web
 ```
 
@@ -76,7 +66,7 @@ pnpm dsh web
 适用于没有 DeepSeek Harness 源码仓库的环境。npx 会临时获取官方 `@deepseek-ai/dsh` CLI，插件和 profile 仍保存在用户的 DSH Home 中：
 
 ```bash
-npx --yes @deepseek-ai/dsh@latest plugin --profile web add ~/Downloads/dsh-tapd-mcp-0.3.0.tgz
+npx --yes @deepseek-ai/dsh@latest plugin --profile web add https://github.com/L-ance/dsh-tapd-oauth/releases/download/v0.3.0/dsh-tapd-mcp-0.3.0.tgz
 npx --yes @deepseek-ai/dsh@latest web
 ```
 
