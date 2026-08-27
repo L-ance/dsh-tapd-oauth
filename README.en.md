@@ -52,14 +52,14 @@ uvx --version
 
 \`dsh plugin add\` accepts a Release tarball URL directly. You do not need to download or unpack it first:
 
-<https://github.com/L-ance/dsh-tapd-oauth/releases/download/v0.3.0/dsh-tapd-mcp-0.3.0.tgz>
+<https://github.com/L-ance/dsh-tapd-oauth/releases/download/v0.0.1/dsh-tapd-mcp-0.0.1.tgz>
 
 ## Installation option 1: DeepSeek Harness source checkout
 
 Use this when you run DSH from a DeepSeek Harness source checkout with \`pnpm dsh web\`. Run these commands from the DeepSeek Harness repository root:
 
 \`\`\`bash
-pnpm dsh plugin --profile web add https://github.com/L-ance/dsh-tapd-oauth/releases/download/v0.3.0/dsh-tapd-mcp-0.3.0.tgz
+pnpm dsh plugin --profile web add https://github.com/L-ance/dsh-tapd-oauth/releases/download/v0.0.1/dsh-tapd-mcp-0.0.1.tgz
 pnpm dsh web
 \`\`\`
 
@@ -68,7 +68,7 @@ pnpm dsh web
 Use this when you do not have a DeepSeek Harness source checkout:
 
 \`\`\`bash
-npx --yes @deepseek-ai/dsh@latest plugin --profile web add https://github.com/L-ance/dsh-tapd-oauth/releases/download/v0.3.0/dsh-tapd-mcp-0.3.0.tgz
+npx --yes @deepseek-ai/dsh@latest plugin --profile web add https://github.com/L-ance/dsh-tapd-oauth/releases/download/v0.0.1/dsh-tapd-mcp-0.0.1.tgz
 npx --yes @deepseek-ai/dsh@latest web
 \`\`\`
 
@@ -153,7 +153,7 @@ curl -I --connect-timeout 5 --max-time 15 https://registry.npmmirror.com
 For one command, select the mirror like this:
 
 \`\`\`bash
-npm_config_registry=https://registry.npmmirror.com pnpm dsh plugin --profile web add https://github.com/L-ance/dsh-tapd-oauth/releases/download/v0.3.0/dsh-tapd-mcp-0.3.0.tgz
+npm_config_registry=https://registry.npmmirror.com pnpm dsh plugin --profile web add https://github.com/L-ance/dsh-tapd-oauth/releases/download/v0.0.1/dsh-tapd-mcp-0.0.1.tgz
 \`\`\`
 
 ### MCP fails to start
@@ -175,7 +175,7 @@ If \`TAPD_ACCESS_TOKEN\` is set in the environment that starts DSH, that environ
 pnpm install
 pnpm check
 pnpm pack
-shasum -a 256 dsh-tapd-mcp-0.3.0.tgz
+shasum -a 256 dsh-tapd-mcp-0.0.1.tgz
 \`\`\`
 
 \`pnpm check\` runs type checking, tests, and a clean build. Upload the tarball produced by \`pnpm pack\` as a GitHub Release asset.
