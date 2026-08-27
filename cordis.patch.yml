@@ -1,0 +1,8 @@
+- insert:
+    - id: tapd-mcp
+      name: dsh-tapd-mcp
+      config:
+        tapdTokenRef: TAPD_ACCESS_TOKEN
+        mcpCommand: uvx
+        mcpArgs:
+          - mcp-server-tapd
