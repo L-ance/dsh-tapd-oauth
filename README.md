@@ -50,19 +50,14 @@ uvx --version
 插件通过 GitHub Releases 发布。可以在浏览器下载，也可以执行：
 
 ```bash
-RELEASE_VERSION="v0.3.0"
-PLUGIN_FILE="dsh-tapd-mcp-0.3.0.tgz"
-PLUGIN_TGZ="$HOME/Downloads/$PLUGIN_FILE"
-
-curl --fail --location \
-  --output "$PLUGIN_TGZ" \
-  "https://github.com/L-ance/dsh-tapd-oauth/releases/download/$RELEASE_VERSION/$PLUGIN_FILE"
+curl -fL https://github.com/L-ance/dsh-tapd-oauth/releases/download/v0.3.0/dsh-tapd-mcp-0.3.0.tgz \
+  -o ~/Downloads/dsh-tapd-mcp-0.3.0.tgz
 ```
 
 安装命令使用本机 `.tgz` 的绝对路径；不要解压安装包。下载完成后可校验：
 
 ```bash
-shasum -a 256 "$PLUGIN_TGZ"
+shasum -a 256 ~/Downloads/dsh-tapd-mcp-0.3.0.tgz
 ```
 
 `v0.3.0` 的 SHA-256 应为 Release 页面记录的值。
@@ -72,26 +67,16 @@ shasum -a 256 "$PLUGIN_TGZ"
 适用于已经克隆 DeepSeek Harness 源码、平时使用 `pnpm dsh web` 启动的环境。在 DeepSeek Harness 源码仓库根目录执行：
 
 ```bash
-PLUGIN_TGZ="$HOME/Downloads/dsh-tapd-mcp-0.3.0.tgz"
-
-npm_config_registry=https://registry.npmmirror.com \
-pnpm dsh plugin --profile web add "$PLUGIN_TGZ"
-
+pnpm dsh plugin --profile web add ~/Downloads/dsh-tapd-mcp-0.3.0.tgz
 pnpm dsh web
 ```
-
-这里的 registry 只用于解析插件依赖，不会改变 TAPD API 地址。
 
 ## 安装方式二：npx
 
 适用于没有 DeepSeek Harness 源码仓库的环境。npx 会临时获取官方 `@deepseek-ai/dsh` CLI，插件和 profile 仍保存在用户的 DSH Home 中：
 
 ```bash
-PLUGIN_TGZ="$HOME/Downloads/dsh-tapd-mcp-0.3.0.tgz"
-
-npm_config_registry=https://registry.npmmirror.com \
-npx --yes @deepseek-ai/dsh@latest plugin --profile web add "$PLUGIN_TGZ"
-
+npx --yes @deepseek-ai/dsh@latest plugin --profile web add ~/Downloads/dsh-tapd-mcp-0.3.0.tgz
 npx --yes @deepseek-ai/dsh@latest web
 ```
 
