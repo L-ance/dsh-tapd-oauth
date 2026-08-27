@@ -1,5 +1,7 @@
 # dsh-tapd-mcp
 
+[中文](./README.md) | [English](./README.en.md)
+
 DeepSeek Harness Web 的 TAPD MCP 设置插件。在 DSH 的“设置”页面填写 TAPD 地址和访问令牌，插件会按下列等价配置启动 MCP：
 
 - 源码仓库：<https://github.com/L-ance/dsh-tapd-oauth>
