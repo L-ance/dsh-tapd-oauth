@@ -2,6 +2,9 @@
 
 DeepSeek Harness Web 的 TAPD MCP 设置插件。在 DSH 的“设置”页面填写 TAPD 地址和访问令牌，插件会按下列等价配置启动 MCP：
 
+- 源码仓库：<https://github.com/L-ance/dsh-tapd-oauth>
+- Release 下载：<https://github.com/L-ance/dsh-tapd-oauth/releases>
+
 ```json
 {
   "mcpServers": {
@@ -44,19 +47,25 @@ uvx --version
 
 ## 获取插件包
 
-从 Git 仓库的 Releases 页面下载当前版本：
-
-```text
-dsh-tapd-mcp-0.3.0.tgz
-```
-
-下面示例假定文件下载到了 `~/Downloads`：
+插件通过 GitHub Releases 发布。可以在浏览器下载，也可以执行：
 
 ```bash
-PLUGIN_TGZ="$HOME/Downloads/dsh-tapd-mcp-0.3.0.tgz"
+RELEASE_VERSION="v0.3.0"
+PLUGIN_FILE="dsh-tapd-mcp-0.3.0.tgz"
+PLUGIN_TGZ="$HOME/Downloads/$PLUGIN_FILE"
+
+curl --fail --location \
+  --output "$PLUGIN_TGZ" \
+  "https://github.com/L-ance/dsh-tapd-oauth/releases/download/$RELEASE_VERSION/$PLUGIN_FILE"
 ```
 
-`PLUGIN_TGZ` 必须是本机绝对路径。不要解压 `.tgz`。
+安装命令使用本机 `.tgz` 的绝对路径；不要解压安装包。下载完成后可校验：
+
+```bash
+shasum -a 256 "$PLUGIN_TGZ"
+```
+
+`v0.3.0` 的 SHA-256 应为 Release 页面记录的值。
 
 ## 安装方式一：DeepSeek Harness 源码
 
