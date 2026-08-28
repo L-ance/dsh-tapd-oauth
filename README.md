@@ -16,7 +16,8 @@ DeepSeek Harness Web 的 TAPD MCP 设置插件。在 DSH 的“设置”页面�
       "env": {
         "TAPD_ACCESS_TOKEN": "<由 DSH 凭据存储注入>",
         "TAPD_API_BASE_URL": "https://api.tapd.cn",
-        "TAPD_BASE_URL": "https://www.tapd.cn"
+        "TAPD_BASE_URL": "https://www.tapd.cn",
+        "UV_DEFAULT_INDEX": "https://pypi.tuna.tsinghua.edu.cn/simple"
       }
     }
   }
@@ -30,7 +31,9 @@ DeepSeek Harness Web 的 TAPD MCP 设置插件。在 DSH 的“设置”页面�
 - TAPD Token 由 `ctx.credentials` 管理，不写入普通设置或浏览器 RPC 返回值。
 - TAPD 地址和启用状态存放在 DSH settings 的 `tapd-mcp` namespace。
 - 启用 MCP 且 Token 已配置后，插件启动 `uvx mcp-server-tapd`。
+- 默认通过清华 PyPI 镜像解析 `mcp-server-tapd`，避免部分网络访问官方 PyPI 时出现 TLS/连接失败；可在插件配置中覆盖或留空恢复官方源。
 - 地址、Token 或 MCP 启用状态变化时，插件会自动重启或停止 MCP 子进程。
+- 首次 `uvx` 下载超过 MCP SDK 的 60 秒初始化窗口时，MCP 客户端会保留并自动重连；下载完成后无需再次保存设置。
 - MCP 启动错误会显示在 TAPD 设置区域，但错误文本会脱敏当前 Token。
 
 ## 前置条件
@@ -132,6 +135,7 @@ shasum -a 256 dsh-tapd-mcp-0.0.1.tgz
         mcpCommand: uvx
         mcpArgs:
           - mcp-server-tapd
+        uvDefaultIndex: https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 不要把 Token 写进这个文件。`tapdTokenRef` 是凭据名称，不是 Token 值。
@@ -184,6 +188,10 @@ uvx --version
 ```
 
 然后确认启动 DSH 的 shell 能访问 Python 包源和 TAPD API。首次运行 `uvx mcp-server-tapd` 可能需要下载包。
+
+插件默认向 `uvx` 传入 `UV_DEFAULT_INDEX=https://pypi.tuna.tsinghua.edu.cn/simple`。如果企业网络使用内部 Python 镜像，可在 `tapd-mcp` 插件配置中修改 `uvDefaultIndex`；设为空字符串可恢复 uv 的官方 PyPI 默认源。
+
+冷启动下载较慢时，页面可能短暂显示运行中但工具仍在后台同步。MCP 客户端会自动重连；通常等待一到两分钟即可，无需反复保存。
 
 ### 页面显示 Token 只读
 

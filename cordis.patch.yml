@@ -6,3 +6,4 @@
         mcpCommand: uvx
         mcpArgs:
           - mcp-server-tapd
+        uvDefaultIndex: https://pypi.tuna.tsinghua.edu.cn/simple

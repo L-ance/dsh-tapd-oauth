@@ -16,7 +16,8 @@ A TAPD MCP settings plugin for DeepSeek Harness Web. Configure the TAPD URLs and
       "env": {
         "TAPD_ACCESS_TOKEN": "<injected by DSH credentials>",
         "TAPD_API_BASE_URL": "https://api.tapd.cn",
-        "TAPD_BASE_URL": "https://www.tapd.cn"
+        "TAPD_BASE_URL": "https://www.tapd.cn",
+        "UV_DEFAULT_INDEX": "https://pypi.tuna.tsinghua.edu.cn/simple"
       }
     }
   }
@@ -30,7 +31,9 @@ This release does not implement WeCom QR-code login or OAuth. WeCom authenticati
 - The TAPD token is managed by \`ctx.credentials\`; it is never stored in ordinary settings or returned through browser RPC.
 - TAPD URLs and the enabled state are stored in the \`tapd-mcp\` DSH settings namespace.
 - When MCP is enabled and a token is configured, the plugin starts \`uvx mcp-server-tapd\`.
+- The plugin resolves \`mcp-server-tapd\` through the Tsinghua PyPI mirror by default, avoiding TLS/connectivity failures to the official PyPI endpoint on some networks. The plugin configuration can override it or leave it empty to restore uv's official default.
 - Changing a URL, the token, or the enabled state automatically restarts or stops the MCP child process.
+- If the first \`uvx\` download exceeds the MCP SDK's fixed 60-second initialization window, the MCP client stays alive and reconnects automatically. No additional save is required after the download completes.
 - Startup errors are shown in the TAPD settings panel, with the current token redacted.
 
 ## Requirements
@@ -119,6 +122,7 @@ The package installs this \`cordis.patch.yml\` layer:
         mcpCommand: uvx
         mcpArgs:
           - mcp-server-tapd
+        uvDefaultIndex: https://pypi.tuna.tsinghua.edu.cn/simple
 \`\`\`
 
 Do not put a token in this file. \`tapdTokenRef\` is a credential reference name, not the token value.
@@ -164,6 +168,10 @@ uvx --version
 \`\`\`
 
 Make sure the shell that starts DSH can access the Python package index and TAPD API. The first \`uvx mcp-server-tapd\` run may need to download the package.
+
+By default the plugin passes \`UV_DEFAULT_INDEX=https://pypi.tuna.tsinghua.edu.cn/simple\` to \`uvx\`. If your organization provides an internal Python index, set \`uvDefaultIndex\` in the \`tapd-mcp\` plugin configuration. Set it to an empty string to restore uv's official PyPI default.
+
+On a slow cold start, the settings page may briefly report an active bridge while tools are still synchronizing in the background. The MCP client reconnects automatically; wait one or two minutes instead of repeatedly saving.
 
 ### The token is read-only
 

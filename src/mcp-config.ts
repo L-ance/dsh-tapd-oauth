@@ -12,9 +12,12 @@ export function createMcpClientConfig(config: Config, settings: TapdSettings, to
 			TAPD_ACCESS_TOKEN: token,
 			TAPD_API_BASE_URL: settings.tapdApiBaseUrl,
 			TAPD_BASE_URL: settings.tapdBaseUrl,
+			...(config.uvDefaultIndex.trim() === "" ? {} : { UV_DEFAULT_INDEX: config.uvDefaultIndex.trim() }),
 		},
 		cwd: "",
 		toolCallTimeoutMs: config.toolCallTimeoutMs,
-		failOnStartupError: true,
+		// A cold uvx install can exceed the MCP SDK's fixed 60-second initialize timeout.
+		// Keep the bridge alive so its built-in reconnect loop can use the completed cache.
+		failOnStartupError: false,
 	};
 }

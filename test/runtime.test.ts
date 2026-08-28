@@ -9,26 +9,33 @@ describe("TAPD settings save", () => {
 			tapdApiBaseUrl: "https://api.tapd.cn",
 			mcpEnabled: true,
 		};
+		let reconcileScheduled = 0;
+		const blockedReconcile = new Promise<void>(() => undefined);
+		const dependencies = {
+			setToken: async () => undefined,
+			unsetToken: async () => undefined,
+			updateSettings: async (next: TapdSettings) => {
+				current = next;
+			},
+			scheduleReconcile: () => {
+				reconcileScheduled += 1;
+				void blockedReconcile;
+			},
+			status: async () => ({
+				...current,
+				tapdTokenConfigured: true,
+				tapdTokenWritable: true,
+				mcpPhase: "starting" as const,
+				mcpError: "",
+			}),
+		};
 		const save = saveTapdSettings({
 			tapdBaseUrl: current.tapdBaseUrl,
 			tapdApiBaseUrl: current.tapdApiBaseUrl,
 			tapdToken: "",
 			clearTapdToken: false,
 			mcpEnabled: false,
-		}, {
-			setToken: async () => undefined,
-			unsetToken: async () => undefined,
-			updateSettings: async (next) => {
-				current = next;
-			},
-			status: async () => ({
-				...current,
-				tapdTokenConfigured: true,
-				tapdTokenWritable: true,
-				mcpPhase: "starting",
-				mcpError: "",
-			}),
-		});
+		}, dependencies);
 		const outcome = await Promise.race([
 			save.then(() => "saved"),
 			new Promise<string>((resolve) => setTimeout(() => resolve("timed-out"), 50)),
@@ -36,5 +43,6 @@ describe("TAPD settings save", () => {
 
 		expect(outcome).toBe("saved");
 		expect(current.mcpEnabled).toBe(false);
+		expect(reconcileScheduled).toBe(1);
 	});
 });

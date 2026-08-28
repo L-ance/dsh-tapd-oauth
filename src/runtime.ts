@@ -48,7 +48,7 @@ export class TapdMcpRuntime extends TypertRemoteService {
 
 		ctx.effect(() => this.settings.watch(() => this.enqueueReconcile()), "tapd-mcp: settings watcher");
 		ctx.on("credentials/updated", (ref) => {
-			if (ref === this.tapdTokenRef) void this.enqueueReconcile();
+			if (ref === this.tapdTokenRef) this.scheduleReconcile();
 		});
 		ctx.effect(async () => async () => {
 			await this.disposeMcp();
@@ -65,6 +65,14 @@ export class TapdMcpRuntime extends TypertRemoteService {
 			() => this.reconcile(),
 		);
 		return this.reconcileTail;
+	}
+
+	private scheduleReconcile(): void {
+		void this.enqueueReconcile().catch(() => {
+			this.mcpPhase = "failed";
+			this.mcpError = "tapd-mcp: background reconciliation failed";
+			this.ctx.logger.warn("tapd-mcp: background reconciliation failed");
+		});
 	}
 
 	private async disposeMcp(): Promise<void> {
@@ -90,6 +98,7 @@ export class TapdMcpRuntime extends TypertRemoteService {
 			settings.tapdApiBaseUrl,
 			this.config.mcpCommand,
 			...this.config.mcpArgs,
+			this.config.uvDefaultIndex,
 			String(this.config.toolCallTimeoutMs),
 		]);
 		if (this.mcpFiber !== undefined && this.mcpSignature === nextSignature) return;
@@ -130,6 +139,7 @@ export class TapdMcpRuntime extends TypertRemoteService {
 			setToken: (value) => this.ctx.credentials.set(this.tapdTokenRef, value),
 			unsetToken: () => this.ctx.credentials.unset(this.tapdTokenRef),
 			updateSettings: (next) => this.settings.update(next),
+			scheduleReconcile: () => this.scheduleReconcile(),
 			status: () => this.status(),
 		});
 	}

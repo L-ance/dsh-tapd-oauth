@@ -5,6 +5,7 @@ export interface TapdSaveDependencies {
 	setToken(value: string): Promise<void>;
 	unsetToken(): Promise<void>;
 	updateSettings(next: TapdSettings): Promise<void>;
+	scheduleReconcile(): void;
 	status(): Promise<TapdStatus>;
 }
 
@@ -19,5 +20,6 @@ export async function saveTapdSettings(input: SaveInput, dependencies: TapdSaveD
 	if (input.clearTapdToken) await dependencies.unsetToken();
 	else if (input.tapdToken.trim() !== "") await dependencies.setToken(input.tapdToken.trim());
 	await dependencies.updateSettings(next);
+	dependencies.scheduleReconcile();
 	return dependencies.status();
 }
