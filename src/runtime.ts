@@ -2,14 +2,14 @@ import { createHash } from "node:crypto";
 import type { Context, Fiber } from "@deepseek-ai/cordis";
 import { credentialRef, type CredentialRef } from "@deepseek-ai/dsh-credentials";
 import * as McpClient from "@deepseek-ai/dsh-mcp-client";
-import { settingsNamespace, type SettingsScope } from "@deepseek-ai/dsh-settings";
+import type { SettingsScope } from "@deepseek-ai/dsh-settings";
 import { Remote, TypertRemoteService } from "@deepseek-ai/dsh-typert-protocol";
 import { type Config, type TapdSettings, TapdSettingsSchema, validateSettings } from "./config.js";
 import { createMcpClientConfig } from "./mcp-config.js";
 import { saveTapdSettings } from "./save.js";
 import type { SaveInput, TapdStatus } from "./schemas.js";
 
-const SETTINGS_NAMESPACE = settingsNamespace("tapd-mcp");
+const SETTINGS_NAMESPACE = "tapd-mcp";
 type McpPhase = TapdStatus["mcpPhase"];
 
 function errorMessage(error: unknown): string {
@@ -47,7 +47,7 @@ export class TapdMcpRuntime extends TypertRemoteService {
 		});
 
 		ctx.effect(() => this.settings.watch(() => this.enqueueReconcile()), "tapd-mcp: settings watcher");
-		ctx.on("credentials/updated", (ref) => {
+		ctx.on("credentials/reference-updated", (ref) => {
 			if (ref === this.tapdTokenRef) this.scheduleReconcile();
 		});
 		ctx.effect(async () => async () => {

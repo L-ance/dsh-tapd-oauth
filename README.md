@@ -1,3 +1,5 @@
+> Local compatibility build `0.0.2-local.1` for DSH CLI `0.1.5-rc.1` / core packages `0.1.5-rc.2`. This is not an upstream release. The older installation commands below refer to the upstream release; for this build use the accompanying local `.tgz`.
+
 # dsh-tapd-mcp
 
 [中文](./README.md) | [English](./README.en.md)
