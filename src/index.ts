@@ -1,5 +1,5 @@
 import type { Context } from "@deepseek-ai/cordis";
-import { Config, type Config as PluginConfig } from "./config.js";
+import { Config, type RuntimeConfig as PluginConfig } from "./config.js";
 import { TapdMcpRuntime } from "./runtime.js";
 
 export { Config };

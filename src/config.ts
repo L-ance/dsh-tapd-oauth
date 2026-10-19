@@ -11,13 +11,18 @@ export interface Config {
 	toolCallTimeoutMs: number;
 }
 
-export const Config: z<Config> = z.object({
+export const Config = z.object({
 	tapdTokenRef: z.string().default("TAPD_ACCESS_TOKEN"),
 	mcpCommand: z.string().default("uvx"),
 	mcpArgs: z.array(z.string()).default(["mcp-server-tapd"]),
 	uvDefaultIndex: z.string().default("https://pypi.tuna.tsinghua.edu.cn/simple"),
 	toolCallTimeoutMs: z.number().min(1).default(60_000),
+	tapdBaseUrl: z.string().default(DEFAULT_TAPD_BASE_URL).volatile(),
+	tapdApiBaseUrl: z.string().default(DEFAULT_TAPD_API_BASE_URL).volatile(),
+	mcpEnabled: z.boolean().default(true).volatile(),
 });
+
+export type RuntimeConfig = ReturnType<typeof Config>;
 
 export interface TapdSettings {
 	tapdBaseUrl: string;

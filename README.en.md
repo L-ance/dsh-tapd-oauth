@@ -1,4 +1,4 @@
-> Local compatibility build `0.0.2-local.1` for DSH CLI `0.1.5-rc.1` / core packages `0.1.5-rc.2`. This is not an upstream release. The older installation commands below refer to the upstream release; for this build use the accompanying local `.tgz`.
+> Local compatibility build `0.0.3-local.1` for DSH CLI / core packages `0.2.0-rc.2`. This is not an upstream release. The older installation commands below refer to the upstream release; for this build use the accompanying local `.tgz`.
 
 # dsh-tapd-mcp
 
@@ -195,3 +195,7 @@ shasum -a 256 dsh-tapd-mcp-0.0.1.tgz
 - Never paste a real token into chats, screenshots, repositories, shell history, or ordinary JSON/YAML configuration.
 - Revoke and rotate any token that has been exposed.
 - \`.credentials.yaml\` is readable by processes running as the same operating-system user. It prevents browser and ordinary settings surfaces from returning the secret, but it is not equivalent to an OS keychain.
+
+## Local compatibility build for DSH 0.2.0-rc.2
+
+Run `CI=true pnpm install --frozen-lockfile`, `npm run check`, and `npm pack`. Install the generated archive with `npx --yes @deepseek-ai/dsh@0.2.0-rc.2 plugin --profile web add ./dsh-tapd-mcp-0.0.3-local.1.tgz`, restart DSH, and reload the browser. This build uses volatile Config settings and RPC schema factories. Tokens remain in the credential store. If DSH previously failed to migrate TAPD settings, recover only the three `tapd-mcp` fields from `~/.dsh/settings.yaml.imported` into the profile patch; preserve all other configuration.

@@ -1,18 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { createRequire } from 'node:module';
+const requireSettings = createRequire(import.meta.resolve('@deepseek-ai/dsh-settings'));
+const { updateVolatile } = requireSettings('@deepseek-ai/cosmokit');
 import { Context } from '@deepseek-ai/cordis';
-import { SettingsProvider } from '@deepseek-ai/dsh-settings';
+import { SettingsForms } from '@deepseek-ai/dsh-settings';
 import * as Tapd from '../lib/index.js';
+import { TYPERT } from '../lib/typert.js';
 
-test('current DSH loads saved settings and reconciles credential reference updates', async () => {
+test('DSH 0.2 settings persist through live Config and credential events reconcile', async () => {
   const ctx = new Context();
   const saved = { tapdBaseUrl: 'https://www.tapd.cn', tapdApiBaseUrl: 'https://api.tapd.cn', mcpEnabled: false };
-  const document = { 'tapd-mcp': { ...saved } };
-  class MemorySettings extends SettingsProvider {
-    writable = true;
-    async load() { return document; }
-    async persist(ns, value) { document[ns] = value; }
-  }
+  const entry = { id: 'tapd-mcp', options: { id: 'tapd-mcp', config: { ...saved } } };
   let resolutions = 0;
   const services = ctx.plugin((child) => {
     child.provide('credentials', {
@@ -21,11 +20,24 @@ test('current DSH loads saved settings and reconciles credential reference updat
       async set() {}, async unset() {},
     });
     child.provide('tools', {});
+    child.provide('loader', { await: () => new Promise(() => {}) });
+    child.provide('profileContext', {});
+    child.provide('configEditor', {
+      entries: () => [entry],
+      configuration: () => [{ entry, inherited: {}, override: entry.options.config }],
+      async edit(target, change) {
+        target.options.config = change(target.options.config, {});
+        // In-memory persistence seam mirrors Loader committing volatile references.
+        const next = Tapd.Config(target.options.config);
+        for (const key of Object.keys(saved)) updateVolatile(target.fiber.config[key], next[key]);
+      },
+    });
   });
   await services;
-  const settings = ctx.plugin(MemorySettings);
+  const settings = ctx.plugin(SettingsForms);
   await settings;
-  const plugin = ctx.plugin(Tapd, {});
+  const plugin = ctx.plugin(Tapd, saved);
+  entry.fiber = plugin;
   try {
     await plugin;
     const runtime = ctx.get('tapdMcp');
@@ -38,12 +50,25 @@ test('current DSH loads saved settings and reconciles credential reference updat
     ctx.emit('credentials/reference-updated', 'UNRELATED_TOKEN');
     await new Promise(resolve => setImmediate(resolve));
     assert.equal(resolutions, before + 1);
+    const originalUid = plugin.uid;
     await runtime.save({ ...saved, tapdBaseUrl: 'https://example.tapd.cn', tapdToken: '', clearTapdToken: false });
-    assert.equal(document['tapd-mcp'].tapdBaseUrl, 'https://example.tapd.cn');
+    assert.equal(entry.options.config.tapdBaseUrl, 'https://example.tapd.cn');
     assert.equal((await runtime.status()).tapdBaseUrl, 'https://example.tapd.cn');
+    assert.equal(plugin.uid, originalUid, 'live changes do not recreate the service');
+    await assert.rejects(runtime.save({ ...saved, tapdApiBaseUrl: 'http://insecure.example', tapdToken: '', clearTapdToken: false }), /HTTPS/);
+    assert.equal(entry.options.config.tapdBaseUrl, 'https://example.tapd.cn');
+
   } finally {
     await plugin.dispose();
     await settings.dispose();
     await services.dispose();
+  }
+});
+
+test('host RPC codecs expose the DSH 0.2 schema factory contract', () => {
+  for (const invocation of TYPERT.invocations) {
+    assert.equal(typeof invocation.result.create, 'function');
+    assert.equal(typeof invocation.result.create().parse, 'function');
+    for (const parameter of invocation.parameters) assert.equal(typeof parameter.codec.create, 'function');
   }
 });

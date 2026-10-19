@@ -2,9 +2,9 @@ import { createHash } from "node:crypto";
 import type { Context, Fiber } from "@deepseek-ai/cordis";
 import { credentialRef, type CredentialRef } from "@deepseek-ai/dsh-credentials";
 import * as McpClient from "@deepseek-ai/dsh-mcp-client";
-import type { SettingsScope } from "@deepseek-ai/dsh-settings";
+import type {} from "@deepseek-ai/dsh-settings";
 import { Remote, TypertRemoteService } from "@deepseek-ai/dsh-typert-protocol";
-import { type Config, type TapdSettings, TapdSettingsSchema, validateSettings } from "./config.js";
+import { type RuntimeConfig, type TapdSettings, validateSettings } from "./config.js";
 import { createMcpClientConfig } from "./mcp-config.js";
 import { saveTapdSettings } from "./save.js";
 import type { SaveInput, TapdStatus } from "./schemas.js";
@@ -28,31 +28,39 @@ declare module "@deepseek-ai/cordis" {
 }
 
 export class TapdMcpRuntime extends TypertRemoteService {
-	private readonly settings: SettingsScope<TapdSettings>;
+	private readonly settingsNamespace: string;
 	private readonly tapdTokenRef: CredentialRef;
-	private readonly config: Config;
+	private readonly config: RuntimeConfig;
 	private mcpFiber: Fiber | undefined;
 	private mcpSignature = "";
 	private mcpPhase: McpPhase = "stopped";
 	private mcpError = "";
 	private reconcileTail: Promise<void> = Promise.resolve();
 
-	constructor(ctx: Context, config: Config) {
+	constructor(ctx: Context, config: RuntimeConfig) {
 		super(ctx, "tapdMcp");
 		this.config = config;
 		this.tapdTokenRef = credentialRef(config.tapdTokenRef);
-		this.settings = ctx.settings.register(SETTINGS_NAMESPACE, TapdSettingsSchema, {
-			applies: "live",
-			validate: validateSettings,
+		this.settingsNamespace = ctx.get("entry")?.options.id ?? SETTINGS_NAMESPACE;
+		validateSettings(this.currentSettings());
+		ctx.effect(() => ctx.settings.configure({ auto: false }, ctx.fiber), "tapd-mcp: settings presentation");
+		ctx.on("settings/document-updated", (ns) => {
+			if (ns === this.settingsNamespace) this.scheduleReconcile();
 		});
-
-		ctx.effect(() => this.settings.watch(() => this.enqueueReconcile()), "tapd-mcp: settings watcher");
 		ctx.on("credentials/reference-updated", (ref) => {
 			if (ref === this.tapdTokenRef) this.scheduleReconcile();
 		});
 		ctx.effect(async () => async () => {
 			await this.disposeMcp();
 		}, "tapd-mcp: MCP lifecycle");
+	}
+
+	private currentSettings(): TapdSettings {
+		return {
+			tapdBaseUrl: this.config.tapdBaseUrl.get(),
+			tapdApiBaseUrl: this.config.tapdApiBaseUrl.get(),
+			mcpEnabled: this.config.mcpEnabled.get(),
+		};
 	}
 
 	async start(): Promise<void> {
@@ -84,7 +92,7 @@ export class TapdMcpRuntime extends TypertRemoteService {
 	}
 
 	private async reconcile(): Promise<void> {
-		const settings = this.settings.get();
+		const settings = this.currentSettings();
 		const token = await this.ctx.credentials.resolve(this.tapdTokenRef);
 		if (!settings.mcpEnabled || token === undefined) {
 			await this.disposeMcp();
@@ -122,7 +130,7 @@ export class TapdMcpRuntime extends TypertRemoteService {
 
 	@Remote
 	async status(): Promise<TapdStatus> {
-		const current = this.settings.get();
+		const current = this.currentSettings();
 		const token = await this.ctx.credentials.describe(this.tapdTokenRef);
 		return {
 			...current,
@@ -138,7 +146,7 @@ export class TapdMcpRuntime extends TypertRemoteService {
 		return saveTapdSettings(input, {
 			setToken: (value) => this.ctx.credentials.set(this.tapdTokenRef, value),
 			unsetToken: () => this.ctx.credentials.unset(this.tapdTokenRef),
-			updateSettings: (next) => this.settings.update(next),
+			updateSettings: (next) => this.ctx.settings.update(this.settingsNamespace, next),
 			scheduleReconcile: () => this.scheduleReconcile(),
 			status: () => this.status(),
 		});
