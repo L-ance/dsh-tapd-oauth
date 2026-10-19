@@ -1,4 +1,4 @@
-> Local compatibility build `0.0.3-local.1` for DSH CLI / core packages `0.2.0-rc.2`. This is not an upstream release. The older installation commands below refer to the upstream release; for this build use the accompanying local `.tgz`.
+> Local compatibility build `0.0.4-local.1` for DSH CLI / core packages `0.2.0-rc.2` / `0.2.1-rc.2`. This is not an upstream release. The older installation commands below refer to the upstream release; for this build use the accompanying local `.tgz`.
 
 # dsh-tapd-mcp
 
@@ -28,13 +28,13 @@ DeepSeek Harness Web 的 TAPD MCP 设置插件。在 DSH 的“设置”页面�
 
 这个版本不包含企业微信扫码或 OAuth。企业微信登录与 `mcp-server-tapd` 的 Token 认证不是同一件事；如果 DSH 本身需要企业微信 SSO，应由 DSH 的访问入口、反向代理或统一身份认证层单独处理。
 
-## 本地修复版安装（DSH 0.2.0-rc.2）
+## 本地修复版安装（DSH 0.2.1-rc.2）
 
 ```bash
 CI=true pnpm install --frozen-lockfile
 npm run check
 npm pack
-npx --yes @deepseek-ai/dsh@0.2.0-rc.2 plugin --profile web add ./dsh-tapd-mcp-0.0.3-local.1.tgz
+npx --yes @deepseek-ai/dsh@0.2.1-rc.2 plugin --profile web add ./dsh-tapd-mcp-0.0.4-local.1.tgz
 ```
 
 本修复版适配新版 Config volatile 设置及 RPC schema factory。TAPD 地址和启用状态保存在 web profile 的 `cordis.patch.yml` 中，Token 仍由凭据存储管理。安装后重新启动 DSH 并刷新浏览器。

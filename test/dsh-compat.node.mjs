@@ -72,3 +72,15 @@ test('host RPC codecs expose the DSH 0.2 schema factory contract', () => {
     for (const parameter of invocation.parameters) assert.equal(typeof parameter.codec.create, 'function');
   }
 });
+
+
+test('DSH admits TAPD on both validated runtimes without an exemption', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const { evaluatePluginCompatibility, getDshRuntimeVersion } = await import('@deepseek-ai/dsh-app-boot');
+  const manifest = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
+  assert.equal(getDshRuntimeVersion(), '0.2.1-rc.2');
+  for (const runtime of ['0.2.0-rc.2', '0.2.1-rc.2']) {
+    assert.equal(evaluatePluginCompatibility(manifest, {}, runtime), undefined);
+  }
+  assert.ok(evaluatePluginCompatibility(manifest, {}, '0.2.2-rc.1'));
+});
